@@ -1,0 +1,13 @@
+*.exe
+*.dat
+*.env
+*__pycache__
+*venv
+*.schema.json
+*.json
+*.idx
+*.tree
+*.db
+*.text
+*.ipynb
+*.pkl

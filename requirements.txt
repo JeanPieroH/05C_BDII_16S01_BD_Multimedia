@@ -1,0 +1,4 @@
+pandas
+mo_sql_parsing
+rtree
+faker

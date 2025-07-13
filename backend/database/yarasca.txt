@@ -1,0 +1,84 @@
+GRAMMAR:
+
+Te quiero mucho profe Yarasca
+
+[X] means X is optional
+{X | Y} means choice between X or Y
+
+StatementList -> Statement[;StatementList]
+Statement -> CreateStatement | SelectStatement | DropStatement | DeleteStatement | InsertStatement | UpdateStatement
+
+==================================================================================
+
+Identifier refers to anything that is not a token itself, like table names, types, etc
+
+
+CreateStatement -> CreateTableStatement | CreateIndexStatement
+
+CreateTableStatement -> CREATE TABLE UserIdentifier(CreateTableColumns)
+CreateTableColumns -> CreateTableColumnDefinition[,CreateTableColumns]
+CreateTableColumnDefinition -> UserIdentifier DataType ArgumentList
+DataType- > INT | FLOAT | VARCHAR | DATE | BOOL | POINT2D | POINT3D | DATE
+ArgumentList -> [PRIMARY KEY] [USING Method]
+
+CreateIndexStatement -> CREATE INDEX UserIdentifier ON UserIdentifier(UserIdentifier) [USING Method]
+Method -> {BPLUSTREE | EXTENDIBLEHASH | RTREE | SEQUENTIAL}
+
+==================================================================================
+
+SelectStatement -> SELECT SelectList FROM TableList [WhereStatement] [GroupByStatement] [OrderByStatement] [LimitStatement]
+
+SelectList -> {* | SelectElement[,SelectList]}
+SelectElement -> ColumnReference [AS UserIdentifier] | FunctionCall [AS UserIdentifier]
+TableList -> {UserIdentifier | (SelectStatement)} [AS UserIdentifier][,TableList]
+
+WhereStatement -> WHERE OrCondition
+OrCondition -> AndCondition [OR OrCondition]
+AndCondition -> NotCondition [AND AndCondition]
+NotCondition -> [NOT] PrimaryCondition
+PrimaryCondition -> ConstantCondition | SimpleComparison | BetweenComparison | (OrCondition)
+ConstantCondition -> TRUE | FALSE
+
+SimpleComparison -> ValueExp ComparisonOp ValueExp
+ComparisonOp -> == | < | > | <= | >= | !=
+ArithmeticOp -> + | - | / | *
+BetweenComparison -> ValueExp BETWEEN ValueExp AND ValueExp
+#NOT IMPLEMENTED# InComparison -> ValueExp [NOT] IN (ValueList | SelectStatement)
+#NOT IMPLEMENTED# ValueList -> ValueExp[, ValueList]
+
+ValueExp -> ConstantExp | ColumnReference
+ConstantExp -> [-]INT_CONSTANT | [-]FLOAT_CONSTANT | STRING_CONSTANT | TRUE | FALSE | DATE_CONSTANT |
+                POINT2D({INT_CONSTANT | FLOAT_CONSTANT}, {INT_CONSTANT | FLOAT_CONSTANT}) |
+                POINT3D({INT_CONSTANT | FLOAT_CONSTANT}, {INT_CONSTANT | FLOAT_CONSTANT}, {INT_CONSTANT | FLOAT_CONSTANT})
+ColumnReference -> [UserIdentifier.]UserIdentifier | (SelectStatement)
+
+GroupByStatement -> GROUP BY GroupByList
+GroupByList -> ColumnReference[,GroupByList]
+
+OrderByStatement -> ORDER BY OrderByList
+OrderByList -> OrderByElement [, OrderByList]
+OrderByElement -> ColumnReference [ASC | DESC]
+
+LimitStatement -> LIMIT INT_CONSTANT
+
+==================================================================================
+
+DropStatement -> DROP {DropTableStatement | DropIndexStatement}
+DropTableStatement -> TABLE UserIdentifier
+DropIndexStatement -> INDEX UserIdentifier ON UserIdentifier
+
+==================================================================================
+
+DeleteStatement -> DELETE FROM UserIdentifier WHERE Condition
+
+==================================================================================
+
+InsertStatement -> INSERT INTO UserIdentifier[(ColumnList)] VALUES (ValueList)
+ColumnList -> UserIdentifier [, ColumnList]
+ValueList -> Constant[, ValueList]
+
+==================================================================================
+
+UpdateStatement -> UPDATE UserIdentifier SET UpdateList [WhereStatement]
+UpdateList -> SetExp[,UpdateList]
+SetExp -> UserIdentifier = ValueExp
