@@ -340,10 +340,20 @@ class HeapFile:
     def fetch_record_by_offset(self, pos: int) -> Record:
         if pos < 0 or pos >= self.heap_size:
             raise IndexError("Offset fuera de rango")
+        
         with open(self.filename, "rb") as fh:
             fh.seek(METADATA_SIZE + pos * self.slot_size)
             buf = fh.read(self.rec_data_size)
-            return Record.unpack(buf, self.schema)
+            record = Record.unpack(buf, self.schema)
+            
+            # Procesar campos de texto
+            updated_values = list(record.values)
+            for i, (fname, fmt) in enumerate(self.schema):
+                if fmt == "text":
+                    offset = updated_values[i]
+                    updated_values[i] = TextFile(self.table_name, fname).read(offset)
+            
+            return Record(self.schema, updated_values)
 
     # ------------------------------------------------------------------
     # Utilidades de depuración -----------------------------------------

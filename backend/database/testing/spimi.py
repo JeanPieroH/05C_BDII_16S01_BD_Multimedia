@@ -39,12 +39,13 @@ def _test_spimi_from_news_csv(path: str):
     print(f"\n== CONSTRUYENDO ÍNDICE SPIMI PARA '{table_name}' ==")
     build_spimi_index(table_name)
 
-    query = "fake"
+    query = "trump"
     print(f"\n== CONSULTA: '{query}' ==")
     results = search_text(table_name, query, k=5)
 
     print("\nTop-5 documentos similares:")
     for rec, score in results:
+        print()
         print(rec, score)
 
 if __name__ == "__main__":

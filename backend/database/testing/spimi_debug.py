@@ -25,7 +25,7 @@ def _test_spimi_verification():
     test_data = [
         [1, "hello world", "this is a test about python programming"],
         [2, "goodbye world", "python is great but java exists"],
-        [3, "hello again", "another test with python and spimi"]
+        [3, "hello hello again", "another test with python and spimi"]
     ]
     
     print(f"\n== CREANDO TABLA '{table_name}' ==")
@@ -56,7 +56,10 @@ def _test_spimi_verification():
     terms_to_check = ["hello", "python", "test"]
     for term in terms_to_check:
         print(f"\nPostings para '{term}':")
-        print_hash_idx("inverted_index", "term")
+        results = search_hash_idx("inverted_index", "term", term)
+        for r in results:
+            print(r)
+            
 
 if __name__ == "__main__":
     _test_spimi_verification()

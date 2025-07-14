@@ -516,82 +516,84 @@ def build_spimi_index(table_name: str) -> None:
 
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """
-    Búsqueda textual usando similitud coseno - Versión adaptada para IndexRecord
+    Búsqueda textual eficiente usando similitud coseno con TF-IDF
+    - Precarga solo las normas necesarias
+    - Optimiza el cálculo de similitud
+    - Maneja correctamente tu estructura IndexRecord
     """
-    # Preprocesamiento de la consulta
-    query_tokens = preprocess(query)
-    if not query_tokens:
+    # 1. Preprocesamiento de la consulta
+    query_terms = preprocess(query)
+    if not query_terms:
         return []
 
-    # Cargar normas de documentos
-    norms_table = HeapFile("inverted_index_norms")
-    doc_norms = {}
-    for rec in norms_table.get_all_records():
-        doc_id, norm = rec.values[0], rec.values[1]  # Acceso por posición
-        doc_norms[doc_id] = norm
+    # 2. Cargar frecuencias de términos en la consulta
+    query_term_freq = defaultdict(int)
+    for term in query_terms:
+        query_term_freq[term] += 1
+    unique_query_terms = list(query_term_freq.keys())
 
-    # Frecuencia de términos en consulta
-    query_tf = Counter(query_tokens)
-    query_terms = list(query_tf.keys())
-    
-    # Inicializar estructuras para el cálculo
+    # 3. Inicializar estructuras para el cálculo
     query_vector = {}
-    doc_vectors = defaultdict(dict)
-    
-    # Buscar en índice invertido
+    doc_scores = defaultdict(float)
+    doc_norms = {}
+    relevant_docs = set()
+
+    # 4. Buscar términos en índice invertido
+    inverted_index = HeapFile("inverted_index")
     hash_idx = ExtendibleHashIndex("inverted_index", "term")
     
-    for term in query_terms:
-        # Buscar término en índice hash
+    for term in unique_query_terms:
+        # 4.1 Buscar término usando índice hash
         index_records = hash_idx.search_record(term)
         if not index_records:
             continue
             
-        # Obtener el Record completo del heapfile
-        inverted_index_heap = HeapFile("inverted_index")
-        record = inverted_index_heap.fetch_record_by_offset(index_records[0].offset)
-
-        print(record, record.values[0], record.values[1])
+        # 4.2 Obtener el registro completo
+        record = inverted_index.fetch_record_by_offset(index_records[0].offset)
+        postings = json.loads(record.values[1])  # values[1] = postings JSON
         
-        # Obtener postings (values[0]=term, values[1]=postings)
-        postings = json.loads(record.values[1])
-        
-        # Calcular IDF
+        # 4.3 Calcular IDF para el término
         df_t = len(postings)
-        idf = math.log(norms_table.heap_size / df_t) if df_t else 0
+        idf = math.log(inverted_index.heap_size / df_t) if df_t else 0
         
-        # Vector de consulta
-        query_tf_normalized = query_tf[term] / len(query_tokens)
-        query_vector[term] = query_tf_normalized * idf
+        # 4.4 Peso del término en la consulta (TF normalizado * IDF)
+        query_tf = query_term_freq[term] / len(query_terms)
+        query_vector[term] = query_tf * idf
         
-        # Almacenar postings para documentos
+        # 4.5 Procesar postings del término
         for doc_id, tfidf in postings:
-            doc_vectors[doc_id][term] = tfidf
+            doc_scores[doc_id] += query_vector[term] * tfidf
+            relevant_docs.add(doc_id)
+            
+            # Almacenar norma si no está cargada
+            if doc_id not in doc_norms:
+                # Buscar norma para este doc (implementación optimizada)
+                norms_table = HeapFile("inverted_index_norms")
+                norm_records = norms_table.search_by_field("doc_id", doc_id)
+                if norm_records:
+                    doc_norms[doc_id] = norm_records[0].values[1]  # values[1] = norm
 
-    # Calcular similitud coseno
-    scored_docs = []
+    # 5. Calcular similitud coseno para documentos relevantes
     query_norm = math.sqrt(sum(tfidf**2 for tfidf in query_vector.values()))
+    scored_docs = []
     
-    for doc_id, term_weights in doc_vectors.items():
-        dot_product = sum(
-            query_vector.get(term, 0) * tfidf 
-            for term, tfidf in term_weights.items()
-        )
-        doc_norm = doc_norms.get(doc_id, 1e-10)
-        similarity = dot_product / (query_norm * doc_norm)
+    for doc_id in relevant_docs:
+        doc_norm = doc_norms.get(doc_id, 1e-10)  # Evitar división por cero
+        similarity = doc_scores[doc_id] / (query_norm * doc_norm)
         scored_docs.append((doc_id, similarity))
 
-    # Top-k resultados
+    # 6. Obtener top-k documentos
     scored_docs.sort(key=lambda x: x[1], reverse=True)
     top_k = scored_docs[:k]
 
-    # Recuperar registros originales
-    heapfile = HeapFile(table_name)
+    # 7. Recuperar registros completos
     results = []
+    source_table = HeapFile(table_name)
+    
     for doc_id, score in top_k:
-        # Buscar por PK (asumiendo que se llama 'id')
-        records = heapfile.search_by_field("id", doc_id)
-        if records:
-            results.append((records[0], score))
+        # Buscar documento por su ID (asume que la PK es 'id')
+        matching_recs = source_table.search_by_field("id", doc_id)
+        if matching_recs:
+            results.append((matching_recs[0], score))
 
     return results
