@@ -135,3 +135,4 @@ def main():
     # Mostrar todos los registros
     for r in registros:
         r.print()
+        

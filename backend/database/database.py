@@ -132,7 +132,7 @@ def insert_record(table_name: str, record: Record) -> int:
                 sound_file = Sound(_table_path(table_name), field_name)
                 sound_offset = sound_file.insert(sound_path)
                 values[i] = (sound_offset, -1)  # -1 for histogram offset
-    record.values = tuple(values)
+    record.values = list(values)
 
     offset = heap.insert_record(record)
     _update_secondary_indexes(table_path, record, offset)

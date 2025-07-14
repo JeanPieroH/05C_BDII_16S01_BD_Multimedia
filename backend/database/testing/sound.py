@@ -54,7 +54,7 @@ def main():
         # 4. Read the sound file path
         sound_handler = Sound(f"backend/database/tables/{table_name}", "audio")
         audio_offset = retrieved_record.values[3]
-        sound_path = sound_handler.read(audio_offset)
+        sound_path = sound_handler.read(audio_offset[1])
         print(f"Retrieved sound path: {sound_path}")
 
         # Verification
