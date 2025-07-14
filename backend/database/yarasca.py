@@ -112,8 +112,8 @@ class Parser:
             column_type = ColumnType.POINT2D  # TODO: integrate rtree
         elif self.match(TokenType.POINT3D):
             column_type = ColumnType.POINT3D  # TODO: integrate rtree
-        elif self.match(TokenType.SOUNDFILE):
-            column_type = ColumnType.SOUNDFILE
+        elif self.match(TokenType.SOUND):
+            column_type = ColumnType.SOUND
         elif self.match(TokenType.VARCHAR):
             if not self.match(TokenType.LEFT_PARENTHESIS):
                 raise SyntaxError(f"Expected '(' after VARCHAR, found {self.curr.text}")
@@ -140,7 +140,7 @@ class Parser:
             ColumnType.BOOL,
             ColumnType.POINT2D,
             ColumnType.POINT3D,
-            ColumnType.SOUNDFILE,
+            ColumnType.SOUND,
         ):
             raise SyntaxError(
                 f"Invalid column type {self.prev.text} for column {column_name}"

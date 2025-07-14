@@ -9,7 +9,7 @@ class ColumnType(Enum):
     BOOL = auto()
     POINT2D = auto()
     POINT3D = auto()
-    SOUNDFILE = auto()
+    SOUND = auto()
 
     def __str__(self):
         return self.name

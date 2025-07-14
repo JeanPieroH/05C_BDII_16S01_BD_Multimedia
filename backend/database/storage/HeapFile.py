@@ -6,6 +6,7 @@ import pandas as pd
 
 from .Record import Record
 from .TextFile import TextFile
+from .Sound import Sound
 
 # --------------------------------------------------------
 #  Valores centinela para marcar registros eliminados
@@ -59,8 +60,10 @@ class HeapFile:
 
         # Crear archivo .text por cada campo tipo "text"
         for field_name, fmt in schema:
-            if fmt == "text":
+            if fmt.upper() == "TEXT":
                 TextFile.build_file(table_name, field_name)
+            elif fmt.upper() == "SOUND":
+                Sound.build_file(table_name, field_name)
 
     # ------------------------------------------------------------------
     # Inicialización ----------------------------------------------------

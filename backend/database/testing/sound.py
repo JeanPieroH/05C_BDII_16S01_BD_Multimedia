@@ -12,7 +12,7 @@ from database import (
     drop_table,
 )
 from storage.Record import Record
-from storage.SoundFile import SoundFile
+from storage.Sound import Sound
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
         ("id", "INT"),
         ("title", "VARCHAR(100)"),
         ("genre", "VARCHAR(50)"),
-        ("audio", "SOUNDFILE"),
+        ("audio", "SOUND"),
     ]
     primary_key = "id"
 
@@ -52,9 +52,9 @@ def main():
         print(f"Retrieved record: {retrieved_record.values}")
 
         # 4. Read the sound file path
-        sound_file_handler = SoundFile(table_name, "audio")
+        sound_handler = Sound(table_name, "audio")
         audio_offset = retrieved_record.values[3]
-        sound_path = sound_file_handler.read(audio_offset)
+        sound_path = sound_handler.read(audio_offset)
         print(f"Retrieved sound path: {sound_path}")
 
         # Verification

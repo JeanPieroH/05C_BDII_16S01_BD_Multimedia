@@ -1,7 +1,7 @@
 import struct
 import os
 
-class SoundFile:
+class Sound:
     """Manejo de almacenamiento externo de rutas a archivos de sonido."""
 
     INT_SIZE = 4

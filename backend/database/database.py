@@ -13,7 +13,7 @@ from collections import Counter, defaultdict
 
 from storage.HeapFile import HeapFile
 from storage.Record import Record
-from storage.SoundFile import SoundFile
+from storage.Sound import Sound
 from indexing.SequentialIndex import SequentialIndex
 from indexing.ExtendibleHashIndex import ExtendibleHashIndex
 from indexing.BPlusTreeIndex import BPlusTreeIndex, BPlusTreeIndexWrapper
@@ -64,9 +64,6 @@ def get_table_schema(table_name: str):
 def create_table(
     table_name: str, schema: List[Tuple[str, str]], primary_key: str
 ) -> None:
-    for field_name, field_type in schema:
-        if field_type == "SOUNDFILE":
-            SoundFile.build_file(table_name, field_name)
     HeapFile.build_file(_table_path(table_name), schema, primary_key)
     print(f"Tabla '{table_name}' creada con éxito.")
 
@@ -124,10 +121,10 @@ def insert_record(table_name: str, record: Record) -> int:
 
     values = list(record.values)
     for i, (field_name, field_type) in enumerate(record.schema):
-        if field_type == "SOUNDFILE":
+        if field_type.upper() == "SOUND":
             sound_path = values[i]
             if isinstance(sound_path, str):
-                sound_file = SoundFile(table_name, field_name)
+                sound_file = Sound(table_name, field_name)
                 values[i] = sound_file.insert(sound_path)
     record.values = tuple(values)
 

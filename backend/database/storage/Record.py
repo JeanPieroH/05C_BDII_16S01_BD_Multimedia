@@ -25,7 +25,7 @@ class Record:
 
     @staticmethod
     def get_format_char_static(fmt):
-        if fmt.upper() in ["TEXT", "SOUNDFILE", "INT"]:
+        if fmt.upper() in ["TEXT", "SOUND", "INT"]:
             return "i"
         elif fmt.upper() == "FLOAT":
             return "f"

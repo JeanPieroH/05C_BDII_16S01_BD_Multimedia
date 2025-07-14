@@ -75,7 +75,7 @@ class TokenType(Enum):
 
     POINT2D = auto()  # for RTREE
     POINT3D = auto()  # for RTREE
-    SOUNDFILE = auto()
+    SOUND = auto()
 
 
 class Token:
@@ -143,7 +143,7 @@ class Token:
         # aaaa
         TokenType.POINT2D: "POINT2D",
         TokenType.POINT3D: "POINT3D",
-        TokenType.SOUNDFILE: "SOUNDFILE",
+        TokenType.SOUND: "SOUND",
     }
 
     TEXT_TO_TYPE = {text: key for key, text in TYPE_TO_TEXT.items()}
