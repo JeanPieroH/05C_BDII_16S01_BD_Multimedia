@@ -17,15 +17,33 @@ class Record:
     def __init__(self, schema, values):
         self.schema = schema
         self.values = values
-        self.format = ''.join('i' if fmt == 'text' else fmt for _, fmt in schema)
+        self.format = ''.join(self.get_format_char(fmt) for _, fmt in schema)
         self.size = struct.calcsize(self.format)
+
+    def get_format_char(self, fmt):
+        return Record.get_format_char_static(fmt)
+
+    @staticmethod
+    def get_format_char_static(fmt):
+        if fmt.upper() in ["TEXT", "SOUNDFILE", "INT"]:
+            return "i"
+        elif fmt.upper() == "FLOAT":
+            return "f"
+        elif fmt.upper() == "BOOL":
+            return "?"
+        elif "VARCHAR" in fmt.upper():
+            return f"{int(fmt.split('(')[1][:-1])}s"
+        else:
+            return fmt
 
     def pack(self) -> bytes:
         processed = []
         for (_, fmt), val in zip(self.schema, self.values):
-            if 's' in fmt:                         # cadena fija
-                size = int(fmt[:-1])
-                processed.append(val.encode()[:size].ljust(size, b'\x00'))
+            if fmt.upper() == "SOUNDFILE":
+                processed.append(val)
+            elif 's' in self.get_format_char(fmt): # cadena fija
+                size = int(self.get_format_char(fmt)[:-1])
+                processed.append(val.encode('utf-8')[:size].ljust(size, b'\x00'))
             elif fmt[:-1].isdigit():               # 3i, 4f, etc.
                 if not (isinstance(val, (list, tuple)) and len(val) == int(fmt[:-1])):
                     raise ValueError(f"Se esperaban {fmt[:-1]} elementos para '{fmt}'")
@@ -36,7 +54,7 @@ class Record:
 
     @staticmethod
     def unpack(buf, schema):
-        fmt_str = ''.join('i' if fmt == 'text' else fmt for _, fmt in schema)
+        fmt_str = ''.join(Record.get_format_char_static(fmt) for _, fmt in schema)
         vals = list(struct.unpack(fmt_str, buf))
         out = []
         for (_, fmt) in schema:
@@ -58,7 +76,7 @@ class Record:
     
     @staticmethod
     def get_size(schema) -> int:
-        format_str = ''.join('i' if fmt == 'text' else fmt for _, fmt in schema)
+        format_str = "".join(Record.get_format_char_static(fmt) for _, fmt in schema)
         return struct.calcsize(format_str)
 
     def __str__(self) -> None:

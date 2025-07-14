@@ -1,0 +1,74 @@
+import os
+import sys
+import shutil
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from database import (
+    create_table,
+    insert_record,
+    search_by_field,
+    drop_table,
+)
+from storage.Record import Record
+from storage.SoundFile import SoundFile
+
+
+def main():
+    table_name = "songs"
+    schema = [
+        ("id", "INT"),
+        ("title", "VARCHAR(100)"),
+        ("genre", "VARCHAR(50)"),
+        ("audio", "SOUNDFILE"),
+    ]
+    primary_key = "id"
+
+    # Clean up previous runs
+    if os.path.exists(f"tables/{table_name}.dat"):
+        drop_table(table_name)
+
+    # 1. Create table
+    create_table(table_name, schema, primary_key)
+    print(f"Table '{table_name}' created.")
+
+    # 2. Insert records
+    records_to_insert = [
+        (1, "Song A", "Pop", "sounds/000002.mp3"),
+        (2, "Song B", "Rock", "sounds/000005.mp3"),
+        (3, "Song C", "Jazz", "sounds/000010.mp3"),
+    ]
+
+    for r in records_to_insert:
+        record = Record(schema, r)
+        insert_record(table_name, record)
+    print(f"{len(records_to_insert)} records inserted.")
+
+    # 3. Verify insertion
+    results = search_by_field(table_name, "id", 2)
+    if results:
+        retrieved_record = results[0]
+        print(f"Retrieved record: {retrieved_record.values}")
+
+        # 4. Read the sound file path
+        sound_file_handler = SoundFile(table_name, "audio")
+        audio_offset = retrieved_record.values[3]
+        sound_path = sound_file_handler.read(audio_offset)
+        print(f"Retrieved sound path: {sound_path}")
+
+        # Verification
+        if sound_path == "sounds/000005.mp3":
+            print("Test PASSED!")
+        else:
+            print("Test FAILED!")
+    else:
+        print("Test FAILED: Record not found.")
+
+    # 5. Clean up
+    drop_table(table_name)
+    print(f"Table '{table_name}' dropped.")
+
+
+if __name__ == "__main__":
+    main()
