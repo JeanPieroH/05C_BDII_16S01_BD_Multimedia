@@ -45,19 +45,14 @@ def main():
         insert_record(table_name, record)
     print(f"{len(records_to_insert)} records inserted.")
 
-    # 3. Verify insertion
+    # 3. Verify insertion and sound path retrieval
     results = search_by_field(table_name, "id", 2)
     if results:
         retrieved_record = results[0]
-        print(f"Retrieved record: {retrieved_record.values}")
-
-        # 4. Read the sound file path
-        sound_handler = Sound(f"backend/database/tables/{table_name}", "audio")
-        audio_offset = retrieved_record.values[3]
-        sound_path = sound_handler.read(audio_offset[1])
-        print(f"Retrieved sound path: {sound_path}")
+        print(f"Retrieved record: {retrieved_record}")
 
         # Verification
+        sound_path = retrieved_record.values[3]
         if sound_path == "sounds/000005.mp3":
             print("Test PASSED!")
         else:

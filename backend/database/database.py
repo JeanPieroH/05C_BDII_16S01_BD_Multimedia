@@ -578,6 +578,14 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
             record.values[heap_file.schema.index((field_name, "SOUND"))] = (sound_offset, histogram_offset)
             heap_file.update_record(record)
 
+def knn_search(table_name: str, field_name: str, query_audio_path: str, k: int) -> list[tuple[Record, float]]:
+    """
+    Realiza una búsqueda k-NN en un campo de audio.
+    """
+    from multimedia.knn import knn_sequential_search
+    heap_file = HeapFile(_table_path(table_name))
+    return knn_sequential_search(query_audio_path, heap_file, field_name, k)
+
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """
     Búsqueda textual eficiente usando similitud coseno con TF-IDF
