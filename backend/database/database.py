@@ -21,6 +21,7 @@ from indexing.IndexRecord import IndexRecord
 from indexing.RTreeIndex import RTreeIndex
 from indexing.Spimi import SPIMIIndexer
 from indexing.utils_spimi import preprocess
+import pickle
 
 # Ruta base para almacenamiento de tablas
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -125,7 +126,7 @@ def insert_record(table_name: str, record: Record) -> int:
             sound_path = values[i]
             if isinstance(sound_path, str):
                 sound_file = Sound(_table_path(table_name), field_name)
-                values[i] = sound_file.insert(sound_path, [])
+                values[i] = sound_file.insert(sound_path)
     record.values = tuple(values)
 
     offset = heap.insert_record(record)
@@ -551,22 +552,24 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
     from multimedia.histogram import build_histogram
     sound_handler = Sound(_table_path(table_name), field_name)
 
-    # Crear un nuevo archivo de sonido para los histogramas
-    hist_table_name = f"{table_name}_hist"
-    Sound.build_file(_table_path(hist_table_name), field_name)
-    new_sound_file = Sound(_table_path(hist_table_name), field_name)
-
+    histograms = {}
     for record in heap_file.get_all_records():
         audio_offset = record.values[heap_file.schema.index((field_name, "SOUND"))]
-        audio_path, _ = sound_handler.read(audio_offset)
+        audio_path = sound_handler.read(audio_offset)
+
+        if audio_path is None:
+            continue
 
         histogram = build_histogram(f"backend/database/{audio_path}", codebook)
         if histogram is not None:
             # Convertir el histograma a una lista de tuplas (ID, COUNT)
             histogram_tuples = [(i, int(count)) for i, count in enumerate(histogram) if count > 0]
+            histograms[record.values[0]] = histogram_tuples
 
-            # Insertar en el nuevo archivo de sonido
-            new_sound_file.insert(audio_path, histogram_tuples)
+    # Guardar los histogramas en un archivo separado
+    histogram_path = f"backend/database/tables/{table_name}.{field_name}.histograms.pkl"
+    with open(histogram_path, "wb") as f:
+        pickle.dump(histograms, f)
 
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """

@@ -18,7 +18,7 @@ def build_codebook(heap_file: HeapFile, field_name: str, num_clusters: int):
     sound_handler = Sound(f"{heap_file.table_name}", field_name)
     for record in heap_file.get_all_records():
         audio_offset = record.values[heap_file.schema.index((field_name, "SOUND"))]
-        audio_path, _ = sound_handler.read(audio_offset)
+        audio_path = sound_handler.read(audio_offset)
         features = extract_features(f"backend/database/{audio_path}")
         if features is not None:
             all_features.append(features)

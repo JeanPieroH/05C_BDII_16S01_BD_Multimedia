@@ -291,9 +291,12 @@ class HeapFile:
                     # --- Reemplazar offsets por contenido real para campos 'text' ---
                     updated_values = list(rec.values)
                     for i, (fname, fmt) in enumerate(self.schema):
-                        if fmt == "text":
+                        if fmt.upper() == "TEXT":
                             offset = updated_values[i]
                             updated_values[i] = TextFile(self.table_name, fname).read(offset)
+                        elif fmt.upper() == "SOUND":
+                            offset = updated_values[i]
+                            updated_values[i] = Sound(self.table_name, fname).read(offset)
                     resultados.append(Record(self.schema, updated_values))
 
                     if stop_early:
@@ -352,9 +355,12 @@ class HeapFile:
             # Procesar campos de texto
             updated_values = list(record.values)
             for i, (fname, fmt) in enumerate(self.schema):
-                if fmt == "text":
+                if fmt.upper() == "TEXT":
                     offset = updated_values[i]
                     updated_values[i] = TextFile(self.table_name, fname).read(offset)
+                elif fmt.upper() == "SOUND":
+                    offset = updated_values[i]
+                    updated_values[i] = Sound(self.table_name, fname).read(offset)
             
             return Record(self.schema, updated_values)
 
@@ -374,11 +380,16 @@ class HeapFile:
 
                 # Reemplazar offsets por texto real
                 for idx, (name, fmt) in enumerate(self.schema):
-                    if fmt == "text":
+                    if fmt.upper() == "TEXT":
                         offset = rec.values[idx]
                         text_file = TextFile(self.table_name, name)
                         text_content = text_file.read(offset)
                         rec.values[idx] = text_content
+                    elif fmt.upper() == "SOUND":
+                        offset = rec.values[idx]
+                        sound_file = Sound(self.table_name, name)
+                        sound_path = sound_file.read(offset)
+                        rec.values[idx] = sound_path
 
                 print(rec)
                 fh.seek(PTR_SIZE, os.SEEK_CUR)

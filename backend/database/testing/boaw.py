@@ -57,11 +57,10 @@ def main():
     build_acoustic_model(table_name, field_name, num_clusters)
 
     # 4. Verify histogram
-    sound_handler = Sound(f"backend/database/tables/{table_name}_hist", field_name)
-    # Since we are not storing the histogram in the original table, we can't search by it.
-    # We will just check if the histogram file is created.
-    if os.path.exists(f"backend/database/tables/{table_name}_hist.{field_name}.dat"):
+    histogram_path = f"backend/database/tables/{table_name}.{field_name}.histograms.pkl"
+    if os.path.exists(histogram_path):
         print("Test PASSED!")
+        os.remove(histogram_path)
     else:
         print("Test FAILED!")
 
