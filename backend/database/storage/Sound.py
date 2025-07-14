@@ -8,15 +8,16 @@ class Sound:
     SENTINEL = -1  # Valor de n para indicar eliminación lógica
 
     def __init__(self, table_name: str, field_name: str):
-        self.filename = f"{table_name}.{field_name}.sound"
+        self.filename = f"{table_name}.{field_name}.dat"
         if not os.path.exists(self.filename):
             raise FileNotFoundError(f"Archivo {self.filename} no existe. Llame a build_file primero.")
 
     @staticmethod
     def build_file(table_name: str, field_name: str) -> None:
-        """Crea el archivo <table_name>.<field_name>.sound vacío si no existe."""
-        filename = f"{table_name}.{field_name}.sound"
+        """Crea el archivo <table_name>.<field_name>.dat vacío si no existe."""
+        filename = f"{table_name}.{field_name}.dat"
         if not os.path.exists(filename):
+            print(f"Creating sound file: {filename}")
             with open(filename, "wb") as f:
                 pass
 

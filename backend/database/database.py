@@ -124,7 +124,7 @@ def insert_record(table_name: str, record: Record) -> int:
         if field_type.upper() == "SOUND":
             sound_path = values[i]
             if isinstance(sound_path, str):
-                sound_file = Sound(table_name, field_name)
+                sound_file = Sound(_table_path(table_name), field_name)
                 values[i] = sound_file.insert(sound_path)
     record.values = tuple(values)
 
