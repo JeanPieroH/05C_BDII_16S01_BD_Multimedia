@@ -125,7 +125,7 @@ def insert_record(table_name: str, record: Record) -> int:
             sound_path = values[i]
             if isinstance(sound_path, str):
                 sound_file = Sound(_table_path(table_name), field_name)
-                values[i] = sound_file.insert(sound_path)
+                values[i] = sound_file.insert(sound_path, [])
     record.values = tuple(values)
 
     offset = heap.insert_record(record)
@@ -524,6 +524,49 @@ def build_spimi_index(table_name: str) -> None:
     """
     indexer = SPIMIIndexer()
     indexer.build_index(table_name)
+
+
+def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
+    """
+    Construye un modelo acústico (codebook e histogramas) para un campo de audio.
+
+    Args:
+        table_name (str): Nombre de la tabla.
+        field_name (str): Nombre del campo de tipo SOUND.
+        num_clusters (int): Número de clusters para K-Means.
+    """
+    heap_file = HeapFile(_table_path(table_name))
+
+    # 1. Construir el codebook
+    from multimedia.codebook import build_codebook
+    build_codebook(heap_file, field_name, num_clusters)
+
+    # 2. Cargar el codebook
+    from multimedia.histogram import load_codebook
+    codebook = load_codebook(table_name, field_name)
+    if codebook is None:
+        return
+
+    # 3. Generar y almacenar histogramas
+    from multimedia.histogram import build_histogram
+    sound_handler = Sound(_table_path(table_name), field_name)
+
+    # Crear un nuevo archivo de sonido para los histogramas
+    hist_table_name = f"{table_name}_hist"
+    Sound.build_file(_table_path(hist_table_name), field_name)
+    new_sound_file = Sound(_table_path(hist_table_name), field_name)
+
+    for record in heap_file.get_all_records():
+        audio_offset = record.values[heap_file.schema.index((field_name, "SOUND"))]
+        audio_path, _ = sound_handler.read(audio_offset)
+
+        histogram = build_histogram(f"backend/database/{audio_path}", codebook)
+        if histogram is not None:
+            # Convertir el histograma a una lista de tuplas (ID, COUNT)
+            histogram_tuples = [(i, int(count)) for i, count in enumerate(histogram) if count > 0]
+
+            # Insertar en el nuevo archivo de sonido
+            new_sound_file.insert(audio_path, histogram_tuples)
 
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """
