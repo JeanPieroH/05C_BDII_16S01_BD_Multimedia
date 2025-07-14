@@ -25,8 +25,10 @@ class Record:
 
     @staticmethod
     def get_format_char_static(fmt):
-        if fmt.upper() in ["TEXT", "SOUND", "INT"]:
+        if fmt.upper() in ["TEXT", "INT"]:
             return "i"
+        elif fmt.upper() == "SOUND":
+            return "ii"
         elif fmt.upper() == "FLOAT":
             return "f"
         elif fmt.upper() == "BOOL":
@@ -39,8 +41,8 @@ class Record:
     def pack(self) -> bytes:
         processed = []
         for (_, fmt), val in zip(self.schema, self.values):
-            if fmt.upper() == "SOUNDFILE":
-                processed.append(val)
+            if fmt.upper() == "SOUND":
+                processed.extend(val)
             elif 's' in self.get_format_char(fmt): # cadena fija
                 size = int(self.get_format_char(fmt)[:-1])
                 processed.append(val.encode('utf-8')[:size].ljust(size, b'\x00'))
@@ -69,6 +71,8 @@ class Record:
                 n = int(fmt[:-1])
                 out.append(tuple(vals[:n]))
                 del vals[:n]
+            elif fmt.upper() == "SOUND":
+                out.append((vals.pop(0), vals.pop(0)))
             else:
                 out.append(vals.pop(0))
         return Record(schema, out)
@@ -82,8 +86,11 @@ class Record:
     def __str__(self) -> None:
         out_parts = []
         for (_, fmt), value in zip(self.schema, self.values):
-            if 's' in fmt:                         # cadena fija
-                out_parts.append(str(value))
+            if 's' in self.get_format_char(fmt): # cadena fija
+                if isinstance(value, bytes):
+                    out_parts.append(value.decode('utf-8').strip('\x00'))
+                else:
+                    out_parts.append(str(value))
             elif fmt[:-1].isdigit():               # '4f', '3i', etc.
                 # Formatear cada componente según su tipo base
                 base = fmt[-1]

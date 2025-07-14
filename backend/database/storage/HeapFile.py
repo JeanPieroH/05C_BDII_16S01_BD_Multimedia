@@ -295,8 +295,9 @@ class HeapFile:
                             offset = updated_values[i]
                             updated_values[i] = TextFile(self.table_name, fname).read(offset)
                         elif fmt.upper() == "SOUND":
-                            offset = updated_values[i]
-                            updated_values[i] = Sound(self.table_name, fname).read(offset)
+                            sound_offset, histogram_offset = updated_values[i]
+                            updated_values[i] = (Sound(self.filename.replace(".dat", ""), fname).read(sound_offset), histogram_offset)
+
                     resultados.append(Record(self.schema, updated_values))
 
                     if stop_early:
@@ -359,8 +360,8 @@ class HeapFile:
                     offset = updated_values[i]
                     updated_values[i] = TextFile(self.table_name, fname).read(offset)
                 elif fmt.upper() == "SOUND":
-                    offset = updated_values[i]
-                    updated_values[i] = Sound(self.table_name, fname).read(offset)
+                    sound_offset, histogram_offset = updated_values[i]
+                    updated_values[i] = (Sound(self.filename.replace(".dat", ""), fname).read(sound_offset), histogram_offset)
             
             return Record(self.schema, updated_values)
 
@@ -386,10 +387,10 @@ class HeapFile:
                         text_content = text_file.read(offset)
                         rec.values[idx] = text_content
                     elif fmt.upper() == "SOUND":
-                        offset = rec.values[idx]
-                        sound_file = Sound(self.table_name, name)
-                        sound_path = sound_file.read(offset)
-                        rec.values[idx] = sound_path
+                        sound_offset, histogram_offset = rec.values[idx]
+                        sound_file = Sound(self.filename.replace(".dat", ""), name)
+                        sound_path = sound_file.read(sound_offset)
+                        rec.values[idx] = (sound_path, histogram_offset)
 
                 print(rec)
                 fh.seek(PTR_SIZE, os.SEEK_CUR)
@@ -490,3 +491,26 @@ class HeapFile:
                 )
                 fh.seek(PTR_SIZE, os.SEEK_CUR)
                 yield rec.values[pk_idx], text
+
+    def update_record(self, record: Record):
+        if record.schema != self.schema:
+            raise ValueError("Esquema del registro no coincide.")
+
+        pk_idx, _ = self._pk_idx_fmt()
+        pk_value = record.values[pk_idx]
+
+        with open(self.filename, "r+b") as fh:
+            for pos in range(self.heap_size):
+                byte_off = METADATA_SIZE + pos * self.slot_size
+                fh.seek(byte_off)
+                buf = fh.read(self.rec_data_size)
+                rec = Record.unpack(buf, self.schema)
+                if rec.values[pk_idx] == pk_value:
+                    # Decode string values before packing
+                    for i, (fname, fmt) in enumerate(self.schema):
+                        if 's' in Record.get_format_char_static(fmt) and isinstance(record.values[i], bytes):
+                            record.values[i] = record.values[i].decode('utf-8').strip('\x00')
+                    fh.seek(byte_off)
+                    fh.write(record.pack())
+                    return True
+        return False
