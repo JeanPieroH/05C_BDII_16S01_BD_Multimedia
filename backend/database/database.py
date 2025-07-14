@@ -14,6 +14,7 @@ from collections import Counter, defaultdict
 from storage.HeapFile import HeapFile
 from storage.Record import Record
 from storage.Sound import Sound
+from storage.HistogramFile import HistogramFile
 from indexing.SequentialIndex import SequentialIndex
 from indexing.ExtendibleHashIndex import ExtendibleHashIndex
 from indexing.BPlusTreeIndex import BPlusTreeIndex, BPlusTreeIndexWrapper
@@ -65,6 +66,9 @@ def get_table_schema(table_name: str):
 def create_table(
     table_name: str, schema: List[Tuple[str, str]], primary_key: str
 ) -> None:
+    for field_name, field_type in schema:
+        if field_type.upper() == "SOUND":
+            HistogramFile.build_file(_table_path(table_name), field_name)
     HeapFile.build_file(_table_path(table_name), schema, primary_key)
     print(f"Tabla '{table_name}' creada con éxito.")
 
@@ -126,7 +130,8 @@ def insert_record(table_name: str, record: Record) -> int:
             sound_path = values[i]
             if isinstance(sound_path, str):
                 sound_file = Sound(_table_path(table_name), field_name)
-                values[i] = sound_file.insert(sound_path)
+                sound_offset = sound_file.insert(sound_path)
+                values[i] = (sound_offset, -1)  # -1 for histogram offset
     record.values = tuple(values)
 
     offset = heap.insert_record(record)
@@ -551,11 +556,11 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
     # 3. Generar y almacenar histogramas
     from multimedia.histogram import build_histogram
     sound_handler = Sound(_table_path(table_name), field_name)
+    histogram_handler = HistogramFile(_table_path(table_name), field_name)
 
-    histograms = {}
     for record in heap_file.get_all_records():
-        audio_offset = record.values[heap_file.schema.index((field_name, "SOUND"))]
-        audio_path = sound_handler.read(audio_offset)
+        sound_offset, _ = record.values[heap_file.schema.index((field_name, "SOUND"))]
+        audio_path = sound_handler.read(sound_offset)
 
         if audio_path is None:
             continue
@@ -564,12 +569,14 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
         if histogram is not None:
             # Convertir el histograma a una lista de tuplas (ID, COUNT)
             histogram_tuples = [(i, int(count)) for i, count in enumerate(histogram) if count > 0]
-            histograms[record.values[0]] = histogram_tuples
 
-    # Guardar los histogramas en un archivo separado
-    histogram_path = f"backend/database/tables/{table_name}.{field_name}.histograms.pkl"
-    with open(histogram_path, "wb") as f:
-        pickle.dump(histograms, f)
+            # Insertar el histograma y obtener el offset
+            histogram_offset = histogram_handler.insert(histogram_tuples)
+
+            # Actualizar el registro en el heap file con el offset del histograma
+            record.values = list(record.values)
+            record.values[heap_file.schema.index((field_name, "SOUND"))] = (sound_offset, histogram_offset)
+            heap_file.update_record(record)
 
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """

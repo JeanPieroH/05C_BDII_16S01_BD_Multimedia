@@ -57,12 +57,19 @@ def main():
     build_acoustic_model(table_name, field_name, num_clusters)
 
     # 4. Verify histogram
-    histogram_path = f"backend/database/tables/{table_name}.{field_name}.histograms.pkl"
-    if os.path.exists(histogram_path):
-        print("Test PASSED!")
-        os.remove(histogram_path)
+    results = search_by_field(table_name, "id", 2)
+    if results:
+        retrieved_record = results[0]
+        sound_offset, histogram_offset = retrieved_record.values[
+            schema.index((field_name, "SOUND"))
+        ]
+        print(f"Sound offset: {sound_offset}, Histogram offset: {histogram_offset}")
+        if sound_offset != -1 and histogram_offset != -1:
+            print("Test PASSED!")
+        else:
+            print("Test FAILED!")
     else:
-        print("Test FAILED!")
+        print("Test FAILED: Record not found.")
 
     # 5. Clean up
     drop_table(table_name)
