@@ -17,7 +17,7 @@ from storage.Sound import Sound
 
 
 def main():
-    table_name = "songs_boaw"
+    table_name = "songs"
     field_name = "audio"
     schema = [
         ("id", "INT"),

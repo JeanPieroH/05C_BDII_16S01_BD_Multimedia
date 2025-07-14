@@ -11,3 +11,6 @@
 *.text
 *.ipynb
 *.pkl
+prompt.txt
+prompt2.txt
+prompt_context.txt

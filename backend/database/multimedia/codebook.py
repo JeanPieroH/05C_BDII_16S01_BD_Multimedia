@@ -15,7 +15,7 @@ def build_codebook(heap_file: HeapFile, field_name: str, num_clusters: int):
         num_clusters (int): Número de clusters para K-Means.
     """
     all_features = []
-    sound_handler = Sound(f"backend/database/tables/{heap_file.table_name}", field_name)
+    sound_handler = Sound(f"{heap_file.table_name}", field_name)
     for record in heap_file.get_all_records():
         audio_offset = record.values[heap_file.schema.index((field_name, "SOUND"))]
         audio_path, _ = sound_handler.read(audio_offset)
@@ -48,7 +48,7 @@ def build_codebook(heap_file: HeapFile, field_name: str, num_clusters: int):
 
 
     # Guardar el codebook
-    codebook_path = f"backend/database/tables/{heap_file.table_name}.{field_name}.codebook.pkl"
+    codebook_path = f"{heap_file.table_name}.{field_name}.codebook.pkl"
     with open(codebook_path, "wb") as f:
         pickle.dump(codebook, f)
 
