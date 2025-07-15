@@ -37,6 +37,7 @@ class TokenType(Enum):
     EXTENDIBLEHASH = auto()
     RTREE = auto()
     SEQUENTIAL = auto()
+    ACOUSTIC = auto()
 
     # types
     INT = auto()
@@ -113,6 +114,7 @@ class Token:
         TokenType.EXTENDIBLEHASH: "HASHFILE",
         TokenType.RTREE: "RTREE",
         TokenType.SEQUENTIAL: "SEQUENTIAL",
+        TokenType.ACOUSTIC: "ACOUSTIC",
         TokenType.INT: "INT",
         TokenType.FLOAT: "FLOAT",
         TokenType.VARCHAR: "VARCHAR",

@@ -236,9 +236,11 @@ class Parser:
             index_type = IndexType.RTREE
         elif self.match(TokenType.SEQUENTIAL):
             index_type = IndexType.SEQUENTIAL
+        elif self.match(TokenType.ACOUSTIC):
+            index_type = IndexType.ACOUSTIC
         else:
             raise SyntaxError(
-                f"Expected index type (BPLUSTREE, EXTENDIBLEHASH, RTREE, SEQUENTIAL), found {self.curr.text}"
+                f"Expected index type (BPLUSTREE, EXTENDIBLEHASH, RTREE, SEQUENTIAL, ACOUSTIC), found {self.curr.text}"
             )
         return CreateIndexStatement("index_name", table_name, column_name, index_type)
 

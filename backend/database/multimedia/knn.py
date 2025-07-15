@@ -81,6 +81,6 @@ def knn_sequential_search(query_audio_path: str, heap_file: HeapFile, field_name
     # Obtener los registros completos
     final_results = []
     for similarity, record_id in results:
-        final_results.append((similarity, heap_file.search_by_field("id", record_id)[0]))
+        final_results.append((heap_file.search_by_field("id", record_id)[0], similarity))
 
     return final_results

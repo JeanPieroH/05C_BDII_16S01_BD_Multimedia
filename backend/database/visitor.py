@@ -14,6 +14,7 @@ from database import (
     create_btree_idx,
     create_rtree_idx,
     create_hash_idx,
+    build_acoustic_index,
     check_table_exists,
     drop_table,
     get_table_schema,
@@ -229,6 +230,12 @@ class RunVisitor:
                     f"Sequential index can only be created on INT, FLOAT or VARCHAR columns, not {actual_type}."
                 )
             create_seq_idx(st.table_name, st.column_name)
+        elif st.index_type == IndexType.ACOUSTIC:
+            if actual_type != ColumnType.SOUND:
+                raise ValueError(
+                    f"Acoustic index can only be created on SOUND columns, not {actual_type}."
+                )
+            build_acoustic_index(st.table_name, st.column_name)
         else:
             raise ValueError(f"Unsupported index type: {st.index_type}")
 

@@ -50,6 +50,7 @@ class IndexType(Enum):
     EXTENDIBLEHASH = auto()  # int or string
     RTREE = auto()  # dunno
     SEQUENTIAL = auto()  # int, float, string
+    ACOUSTIC = auto()
 
     def __str__(self):
         return self.name
