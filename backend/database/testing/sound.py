@@ -52,9 +52,7 @@ def main():
         print(f"Retrieved record: {retrieved_record}")
 
         # Verification
-        sound_offset, _ = retrieved_record.values[3]
-        sound_handler = Sound(f"backend/database/tables/{table_name}", "audio")
-        sound_path = sound_handler.read(sound_offset)
+        sound_path = retrieved_record.values[3]
         if sound_path == "sounds/000005.mp3":
             print("Test PASSED!")
         else:
