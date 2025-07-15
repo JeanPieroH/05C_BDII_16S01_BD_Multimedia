@@ -22,6 +22,7 @@ def build_histogram(audio_path, codebook):
     distances = euclidean_distances(features.reshape(1, -1), codebook["centroids"])
     labels = np.argmin(distances, axis=1)
 
+
     # Construir el histograma
     histogram = np.zeros(len(codebook["centroids"]))
     for label in labels:
