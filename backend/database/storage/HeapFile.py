@@ -309,8 +309,8 @@ class HeapFile:
                             offset = updated_values[i]
                             updated_values[i] = TextFile(self.table_name, fname).read(offset)
                         elif fmt.upper() == "SOUND":
-                            sound_offset, _ = updated_values[i]
-                            updated_values[i] = Sound(self.filename.replace(".dat", ""), fname).read(sound_offset)
+                            sound_offset, histogram_offset = updated_values[i]
+                            updated_values[i] = (Sound(self.filename.replace(".dat", ""), fname).read(sound_offset), histogram_offset)
 
                     resultados.append(Record(self.schema, updated_values))
 
