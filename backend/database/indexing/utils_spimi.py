@@ -18,7 +18,7 @@ def check_nltk_punkt():
         print("Descargando 'punkt' de NLTK...")
         nltk.download('punkt')
     try:
-        nltk.data.find('tokenizers/punkt_tab/english.pickle') 
+        nltk.data.find('tokenizers/punkt_tab')
     except LookupError:
         print("Descargando 'punkt_tab' de NLTK...")
         nltk.download('punkt_tab')

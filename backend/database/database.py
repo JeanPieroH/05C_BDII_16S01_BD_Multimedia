@@ -68,8 +68,7 @@ def create_table(
 ) -> None:
     for field_name, field_type in schema:
         if field_type.upper() == "SOUND":
-            Sound.build_file(table_name, field_name)
-            HistogramFile.build_file(table_name, field_name)
+            HistogramFile.build_file(_table_path(table_name), field_name)
     HeapFile.build_file(_table_path(table_name), schema, primary_key)
     print(f"Tabla '{table_name}' creada con éxito.")
 
@@ -130,7 +129,7 @@ def insert_record(table_name: str, record: Record) -> int:
         if field_type.upper() == "SOUND":
             sound_path = values[i]
             if isinstance(sound_path, str):
-                sound_file = Sound(table_name, field_name)
+                sound_file = Sound(_table_path(table_name), field_name)
                 sound_offset = sound_file.insert(sound_path)
                 values[i] = (sound_offset, -1)  # -1 for histogram offset
     record.values = list(values)
@@ -529,7 +528,7 @@ def build_spimi_index(table_name: str) -> None:
     """
     Construye el índice invertido SPIMI para los campos de tipo 'text' de la tabla.
     """
-    indexer = SPIMIIndexer()
+    indexer = SPIMIIndexer(_table_path)
     indexer.build_index(_table_path(table_name))
 
 
@@ -556,8 +555,8 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
 
     # 3. Generar y almacenar histogramas
     from multimedia.histogram import build_histogram
-    sound_handler = Sound(table_name, field_name)
-    histogram_handler = HistogramFile(table_name, field_name)
+    sound_handler = Sound(_table_path(table_name), field_name)
+    histogram_handler = HistogramFile(_table_path(table_name), field_name)
 
     for record in heap_file.get_all_records():
         sound_offset, _ = record.values[heap_file.schema.index((field_name, "SOUND"))]
@@ -566,7 +565,7 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
         if audio_path is None:
             continue
 
-        histogram = build_histogram(audio_path, codebook)
+        histogram = build_histogram(f"backend/database/{audio_path}", codebook)
         if histogram is not None:
             # Convertir el histograma a una lista de tuplas (ID, COUNT)
             histogram_tuples = [(i, int(count)) for i, count in enumerate(histogram) if count > 0]
