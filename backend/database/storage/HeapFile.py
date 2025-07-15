@@ -309,8 +309,7 @@ class HeapFile:
                             offset = updated_values[i]
                             updated_values[i] = TextFile(self.table_name, fname).read(offset)
                         elif fmt.upper() == "SOUND":
-                            sound_offset, histogram_offset = updated_values[i]
-                            updated_values[i] = (Sound(self.filename.replace(".dat", ""), fname).read(sound_offset), histogram_offset)
+                            pass
 
                     resultados.append(Record(self.schema, updated_values))
 
@@ -374,8 +373,7 @@ class HeapFile:
                     offset = updated_values[i]
                     updated_values[i] = TextFile(self.table_name, fname).read(offset)
                 elif fmt.upper() == "SOUND":
-                    sound_offset, _ = updated_values[i]
-                    updated_values[i] = Sound(self.filename.replace(".dat", ""), fname).read(sound_offset)
+                    pass
             
             return Record(self.schema, updated_values)
 
@@ -401,10 +399,7 @@ class HeapFile:
                         text_content = text_file.read(offset)
                         rec.values[idx] = text_content
                     elif fmt.upper() == "SOUND":
-                        sound_offset, _ = rec.values[idx]
-                        sound_file = Sound(self.filename.replace(".dat", ""), name)
-                        sound_path = sound_file.read(sound_offset)
-                        rec.values[idx] = sound_path
+                        pass
 
                 print(rec)
                 fh.seek(PTR_SIZE, os.SEEK_CUR)
