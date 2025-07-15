@@ -57,7 +57,7 @@ def main():
     build_acoustic_model(table_name, field_name, num_clusters)
 
     # 4. Verify histogram
-    results = search_by_field(table_name, "id", 2)
+    results = search_by_field(table_name, "id", 2, crude_data=True)
     if results:
         retrieved_record = results[0]
         sound_offset, histogram_offset = retrieved_record.values[

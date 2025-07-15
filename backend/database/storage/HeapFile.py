@@ -263,7 +263,7 @@ class HeapFile:
     # ------------------------------------------------------------------
     #  Búsqueda secuencial por cualquier campo --------------------------
     # ------------------------------------------------------------------
-    def search_by_field(self, field: str, value):
+    def search_by_field(self, field: str, value, crude_data=False):
         """
         Busca secuencialmente en el heap y devuelve:
           • Una lista de Record con todas las coincidencias.
@@ -309,8 +309,9 @@ class HeapFile:
                             offset = updated_values[i]
                             updated_values[i] = TextFile(self.table_name, fname).read(offset)
                         elif fmt.upper() == "SOUND":
-                            sound_offset, _ = updated_values[i]
-                            updated_values[i] = Sound(self.filename.replace(".dat", ""), fname).read(sound_offset)
+                            if not crude_data:
+                                sound_offset, _ = updated_values[i]
+                                updated_values[i] = Sound(self.filename.replace(".dat", ""), fname).read(sound_offset)
 
                     resultados.append(Record(self.schema, updated_values))
 
