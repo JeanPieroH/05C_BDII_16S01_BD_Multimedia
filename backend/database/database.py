@@ -642,9 +642,11 @@ def knn_search_index(table_name: str, field_name: str, query_audio_path: str, k:
 
                 if doc_id not in doc_norms:
                     norms_table = HeapFile(_table_path("acoustic_index_norms"))
-                    norm_records = norms_table.search_by_field("doc_id", doc_id)
+                    hash_idx_norms = ExtendibleHashIndex(_table_path("acoustic_index_norms"), "doc_id")
+                    norm_records = hash_idx_norms.search_record(doc_id)
                     if norm_records:
-                        doc_norms[doc_id] = norm_records[0].values[1]
+                        record = norms_table.fetch_record_by_offset(norm_records[0].offset)
+                        doc_norms[doc_id] = record.values[1]
 
     # 4. Calcular similitud coseno para documentos relevantes
     query_norm = np.linalg.norm(query_tfidf)
