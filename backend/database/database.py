@@ -549,7 +549,7 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
 
     # 2. Cargar el codebook
     from multimedia.histogram import load_codebook
-    codebook = load_codebook(table_name, field_name)
+    codebook = load_codebook(heap_file.table_name, field_name)
     if codebook is None:
         return
 

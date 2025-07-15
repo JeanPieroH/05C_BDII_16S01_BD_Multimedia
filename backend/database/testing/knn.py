@@ -26,7 +26,7 @@ def main():
         (field_name, "SOUND"),
     ]
     primary_key = "id"
-    num_clusters = 5
+    num_clusters = 3
     k = 3
 
     # Clean up previous runs
@@ -60,13 +60,13 @@ def main():
     build_acoustic_model(table_name, field_name, num_clusters)
 
     # 4. Perform k-NN search
-    query_audio_path = "backend/database/sounds/000182.mp3"
+    query_audio_path = "backend/database/sounds/000207.mp3"
     results = knn_search(table_name, field_name, query_audio_path, k)
 
     # 5. Print results
     print(f"\nTop {k} most similar songs to '{query_audio_path}':")
     for similarity, record in results:
-        print(f"  - Record: {record.values}, Similarity: {similarity:.4f}")
+        print(f"  - Record: {record}, Similarity: {similarity:.4f}")
 
     if len(results) == k:
         print("\nTest PASSED!")
@@ -75,8 +75,8 @@ def main():
 
     # 6. Clean up
     drop_table(table_name)
-    if os.path.exists(f"backend/database/tables/{table_name}.{field_name}.codebook.pkl"):
-        os.remove(f"backend/database/tables/{table_name}.{field_name}.codebook.pkl")
+    #if os.path.exists(f"backend/database/tables/{table_name}.{field_name}.codebook.pkl"):
+    #    os.remove(f"backend/database/tables/{table_name}.{field_name}.codebook.pkl")
     if os.path.exists(f"backend/database/tables/{table_name}.{field_name}.histogram.dat"):
         os.remove(f"backend/database/tables/{table_name}.{field_name}.histogram.dat")
     print(f"Table '{table_name}' dropped and associated files removed.")

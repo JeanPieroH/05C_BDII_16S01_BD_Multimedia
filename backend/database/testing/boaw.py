@@ -14,14 +14,14 @@ from database import (
 )
 from storage.Record import Record
 from storage.Sound import Sound
-
+from database import *
 
 def main():
     table_name = "songs"
     field_name = "audio"
     schema = [
         ("id", "INT"),
-        ("title", "VARCHAR(100)"),
+        ("title", "VARCHAR(50)"),
         ("genre", "VARCHAR(50)"),
         (field_name, "SOUND"),
     ]

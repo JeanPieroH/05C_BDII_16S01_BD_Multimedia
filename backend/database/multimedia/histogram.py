@@ -40,7 +40,7 @@ def load_codebook(table_name, field_name):
     Returns:
         dict: Codebook.
     """
-    codebook_path = f"backend/database/tables/{table_name}.{field_name}.codebook.pkl"
+    codebook_path = f"{table_name}.{field_name}.codebook.pkl"
     try:
         with open(codebook_path, "rb") as f:
             return pickle.load(f)
