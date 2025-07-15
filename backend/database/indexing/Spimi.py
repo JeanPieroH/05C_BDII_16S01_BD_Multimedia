@@ -14,9 +14,10 @@ from .ExtendibleHashIndex import ExtendibleHashIndex
 from storage.Record import Record
 
 class SPIMIIndexer:
-    def __init__(self, block_dir: str = "index_blocks", index_table_name: str = "inverted_index"):
+    def __init__(self, _table_path, block_dir: str = "index_blocks", index_table_name: str = "inverted_index"):
         self.block_dir = block_dir
         self.index_table_name = index_table_name
+        self._table_path = _table_path
         os.makedirs(self.block_dir, exist_ok=True)
 
     def build_index(self, table_name: str) -> None:
@@ -56,14 +57,14 @@ class SPIMIIndexer:
         """Merge externo con streaming que evita cargar todo en RAM"""
         # 1. Inicializar el archivo final de índice
         schema_idx = [("term", "50s"), ("postings", "text")]
-        HeapFile.build_file(self.index_table_name, schema_idx, "term")
-        heapfile_idx = HeapFile(self.index_table_name)
+        HeapFile.build_file(self._table_path(self.index_table_name), schema_idx, "term")
+        heapfile_idx = HeapFile(self._table_path(self.index_table_name))
         
         # 2. Inicializar el archivo de normas
         schema_norms = [("doc_id", "i"), ("norm", "f")]
         norms_table_name = f"{self.index_table_name}_norms"
-        HeapFile.build_file(norms_table_name, schema_norms, "doc_id")
-        heapfile_norms = HeapFile(norms_table_name)
+        HeapFile.build_file(self._table_path(norms_table_name), schema_norms, "doc_id")
+        heapfile_norms = HeapFile(self._table_path(norms_table_name))
         
         # 3. Inicializar estructuras para el merge
         block_paths = [os.path.join(self.block_dir, f) for f in os.listdir(self.block_dir) if f.endswith(".pkl")]
@@ -136,12 +137,12 @@ class SPIMIIndexer:
         
         # 7. Crear índices hash
         ExtendibleHashIndex.build_index(
-            self.index_table_name,
+            self._table_path(self.index_table_name),
             lambda field_name: heapfile_idx.extract_index(field_name),
             "term"
         )
         ExtendibleHashIndex.build_index(
-            norms_table_name,
+            self._table_path(norms_table_name),
             lambda field_name: heapfile_norms.extract_index(field_name),
             "doc_id"
         )
