@@ -1,4 +1,5 @@
 import struct
+import os
 
 # Esta clase Record representa un registro binario genérico.
 # A diferencia de versiones más rígidas (como las que usan FORMAT fijo),
@@ -86,7 +87,13 @@ class Record:
     def __str__(self) -> None:
         out_parts = []
         for (_, fmt), value in zip(self.schema, self.values):
-            if 's' in self.get_format_char(fmt): # cadena fija
+            if fmt.upper() == "SOUND":
+                # For sound, we might store a path, let's show only the basename
+                if isinstance(value, str) and os.path.exists(value):
+                    out_parts.append(os.path.basename(value))
+                else:
+                    out_parts.append(str(value))
+            elif 's' in self.get_format_char(fmt): # cadena fija
                 if isinstance(value, bytes):
                     out_parts.append(value.decode('utf-8').strip('\x00'))
                 else:

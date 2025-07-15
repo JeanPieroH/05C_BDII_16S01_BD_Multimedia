@@ -21,7 +21,6 @@ from indexing.BPlusTreeIndex import BPlusTreeIndex, BPlusTreeIndexWrapper
 from indexing.IndexRecord import IndexRecord
 from indexing.RTreeIndex import RTreeIndex
 from indexing.Spimi import SPIMIIndexer
-from indexing.SpimiAudio import SpimiAudioIndexer
 from indexing.utils_spimi import preprocess
 import pickle
 
@@ -537,6 +536,7 @@ def build_acoustic_index(table_name: str, field_name: str) -> None:
     """
     Construye el índice invertido para un campo de tipo 'SOUND'.
     """
+    from indexing.SpimiAudio import SpimiAudioIndexer
     indexer = SpimiAudioIndexer(_table_path, field_name)
     indexer.build_index(table_name)
 

@@ -61,9 +61,7 @@ def main():
     ]
 
     for r in records_to_insert:
-        # HACK: a bit of a hack to get the full path of the sound file
-        sound_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sounds', r[3]))
-        record = Record(schema, (r[0], r[1], r[2], sound_path))
+        record = Record(schema, r)
         insert_record(table_name, record)
     print(f"{len(records_to_insert)} records inserted.")
 
@@ -80,13 +78,13 @@ def main():
 
     print("\n--- Sequential Search ---")
     results_seq = knn_search(table_name, field_name, query_audio_path, k)
-    print(f"Top {k} most similar songs to '{query_audio_path}':")
+    print(f"Top {k} most similar songs to '{os.path.basename(query_audio_path)}':")
     for record, similarity in results_seq:
         print(f"  - Record: {record}, Similarity: {similarity:.4f}")
 
     print("\n--- Index Search ---")
     results_idx = knn_search_index(table_name, field_name, query_audio_path, k)
-    print(f"Top {k} most similar songs to '{query_audio_path}':")
+    print(f"Top {k} most similar songs to '{os.path.basename(query_audio_path)}':")
     for record, similarity in results_idx:
         print(f"  - Record: {record}, Similarity: {similarity:.4f}")
 
