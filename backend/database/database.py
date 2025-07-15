@@ -530,7 +530,7 @@ def build_spimi_index(table_name: str) -> None:
     Construye el índice invertido SPIMI para los campos de tipo 'text' de la tabla.
     """
     indexer = SPIMIIndexer()
-    indexer.build_index(table_name)
+    indexer.build_index(_table_path(table_name))
 
 
 def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
@@ -661,7 +661,7 @@ def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, f
 
     # 7. Recuperar registros completos
     results = []
-    source_table = HeapFile(table_name)
+    source_table = HeapFile(_table_path(table_name))
     
     for doc_id, score in top_k:
         # Buscar documento por su ID (asume que la PK es 'id')

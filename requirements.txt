@@ -2,3 +2,7 @@ pandas
 mo_sql_parsing
 rtree
 faker
+librosa
+scikit-learn
+nltk
+matplotlib
