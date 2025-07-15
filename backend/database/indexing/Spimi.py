@@ -15,7 +15,7 @@ from storage.Record import Record
 
 class SPIMIIndexer:
     def __init__(self, _table_path, block_dir: str = "index_blocks", index_table_name: str = "inverted_index"):
-        self.block_dir = block_dir
+        self.block_dir = os.path.join("backend/database/tables", block_dir)
         self.index_table_name = index_table_name
         self._table_path = _table_path
         os.makedirs(self.block_dir, exist_ok=True)
