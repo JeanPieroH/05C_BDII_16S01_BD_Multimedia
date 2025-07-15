@@ -611,8 +611,8 @@ def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, f
     relevant_docs = set()
 
     # 4. Buscar términos en índice invertido
-    inverted_index = HeapFile("inverted_index")
-    hash_idx = ExtendibleHashIndex("inverted_index", "term")
+    inverted_index = HeapFile(_table_path("inverted_index"))
+    hash_idx = ExtendibleHashIndex(_table_path("inverted_index"), "term")
     
     for term in unique_query_terms:
         # 4.1 Buscar término usando índice hash
@@ -640,7 +640,7 @@ def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, f
             # Almacenar norma si no está cargada
             if doc_id not in doc_norms:
                 # Buscar norma para este doc (implementación optimizada)
-                norms_table = HeapFile("inverted_index_norms")
+                norms_table = HeapFile(_table_path("inverted_index_norms"))
                 norm_records = norms_table.search_by_field("doc_id", doc_id)
                 if norm_records:
                     doc_norms[doc_id] = norm_records[0].values[1]  # values[1] = norm
