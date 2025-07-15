@@ -611,8 +611,8 @@ def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, f
     relevant_docs = set()
 
     # 4. Buscar términos en índice invertido
-    inverted_index = HeapFile("inverted_index")
-    hash_idx = ExtendibleHashIndex("inverted_index", "term")
+    inverted_index = HeapFile(_table_path("inverted_index"))
+    hash_idx = ExtendibleHashIndex(_table_path("inverted_index"), "term")
     
     for term in unique_query_terms:
         # 4.1 Buscar término usando índice hash
