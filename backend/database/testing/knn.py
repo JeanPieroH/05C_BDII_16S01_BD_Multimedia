@@ -60,7 +60,7 @@ def main():
     build_acoustic_model(table_name, field_name, num_clusters)
 
     # 4. Perform k-NN search
-    query_audio_path = "000207.mp3"
+    query_audio_path = "backend/database/sounds/000207.mp3"
     results = knn_search(table_name, field_name, query_audio_path, k)
 
     # 5. Print results

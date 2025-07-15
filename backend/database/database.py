@@ -565,7 +565,7 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
         if audio_path is None:
             continue
 
-        histogram = build_histogram(f"backend/database/{audio_path}", codebook)
+        histogram = build_histogram(audio_path, codebook)
         if histogram is not None:
             # Convertir el histograma a una lista de tuplas (ID, COUNT)
             histogram_tuples = [(i, int(count)) for i, count in enumerate(histogram) if count > 0]
