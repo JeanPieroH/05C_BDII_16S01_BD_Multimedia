@@ -65,6 +65,10 @@ class HeapFile:
             elif fmt.upper() == "SOUND":
                 Sound.build_file(table_name, field_name)
 
+        # This is a workaround for the SpimiAudio index
+        if "postings" in [name for name, _ in schema]:
+            TextFile.build_file(table_name, "postings")
+
     # ------------------------------------------------------------------
     # Inicialización ----------------------------------------------------
     # ------------------------------------------------------------------
@@ -414,8 +418,8 @@ class HeapFile:
     # Utilidades de parser ---------------------------------------------
     # ------------------------------------------------------------------
 
-    def get_all_records(self) -> List[Record]:
-        """Devuelve todos los registros no eliminados en una lista."""
+    def get_all_records(self) -> List[Tuple[int, Record]]:
+        """Devuelve todos los registros no eliminados en una lista de (offset, Record)."""
         records = []
         with open(self.filename, "rb") as f:
             f.seek(METADATA_SIZE)
@@ -426,7 +430,7 @@ class HeapFile:
                 pk_idx, pk_fmt = self._pk_idx_fmt()
                 pk_sentinel = self._sentinel(pk_fmt)
 
-            for _ in range(self.heap_size):
+            for i in range(self.heap_size):
                 buf = f.read(self.rec_data_size)
                 if len(buf) < self.rec_data_size:
                     break
@@ -437,7 +441,7 @@ class HeapFile:
                 if pk_idx is not None and rec.values[pk_idx] == pk_sentinel:
                     f.seek(PTR_SIZE, os.SEEK_CUR)
                     continue
-                records.append(rec)
+                records.append((i, rec))
                 f.seek(PTR_SIZE, os.SEEK_CUR)
         return records
 

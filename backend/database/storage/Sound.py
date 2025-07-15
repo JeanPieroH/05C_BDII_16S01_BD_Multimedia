@@ -8,7 +8,9 @@ class Sound:
     SENTINEL = -1  # Valor de n para indicar eliminación lógica
 
     def __init__(self, table_name: str, field_name: str):
-        self.filename = f"{table_name}.{field_name}.dat"
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        tables_dir = os.path.join(base_dir, "../tables")
+        self.filename = os.path.join(tables_dir, f"{os.path.basename(table_name)}.{field_name}.dat")
         if not os.path.exists(self.filename):
             raise FileNotFoundError(f"Archivo {self.filename} no existe. Llame a build_file primero.")
 

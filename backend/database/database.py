@@ -21,8 +21,10 @@ from indexing.BPlusTreeIndex import BPlusTreeIndex, BPlusTreeIndexWrapper
 from indexing.IndexRecord import IndexRecord
 from indexing.RTreeIndex import RTreeIndex
 from indexing.Spimi import SPIMIIndexer
+from indexing.SpimiAudio import SpimiAudio
 from indexing.utils_spimi import preprocess
 import pickle
+import heapq
 
 # Ruta base para almacenamiento de tablas
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -68,6 +70,7 @@ def create_table(
 ) -> None:
     for field_name, field_type in schema:
         if field_type.upper() == "SOUND":
+            Sound.build_file(_table_path(table_name), field_name)
             HistogramFile.build_file(_table_path(table_name), field_name)
     HeapFile.build_file(_table_path(table_name), schema, primary_key)
     print(f"Tabla '{table_name}' creada con éxito.")
@@ -558,7 +561,7 @@ def build_acoustic_model(table_name: str, field_name: str, num_clusters: int):
     sound_handler = Sound(_table_path(table_name), field_name)
     histogram_handler = HistogramFile(_table_path(table_name), field_name)
 
-    for record in heap_file.get_all_records():
+    for _, record in heap_file.get_all_records():
         sound_offset, _ = record.values[heap_file.schema.index((field_name, "SOUND"))]
         audio_path = sound_handler.read(sound_offset)
 
@@ -585,6 +588,72 @@ def knn_search(table_name: str, field_name: str, query_audio_path: str, k: int) 
     from multimedia.knn import knn_sequential_search
     heap_file = HeapFile(_table_path(table_name))
     return knn_sequential_search(query_audio_path, heap_file, field_name, k)
+
+
+def search_audio_knn(table_name: str, field_name: str, index_name:str, query_audio_path: str, k: int) -> list[tuple[Record, float]]:
+    from multimedia.histogram import build_histogram, load_codebook
+
+    codebook = load_codebook(table_name, field_name)
+    if codebook is None:
+        raise Exception(f"Codebook for table {table_name} and field {field_name} not found.")
+
+    query_histogram = build_histogram(query_audio_path, codebook)
+
+    index_table_name = f"{table_name}_{index_name}"
+    inverted_index = HeapFile(_table_path(index_table_name))
+    hash_idx = ExtendibleHashIndex(_table_path(index_table_name), "term")
+
+    norms_table_name = f"{index_table_name}_norms"
+    norms_table = HeapFile(_table_path(norms_table_name))
+
+    query_vector = {}
+    doc_scores = defaultdict(float)
+    relevant_docs = set()
+
+    norms_hash_idx = ExtendibleHashIndex(_table_path(norms_table_name), "doc_id")
+
+    N = inverted_index.heap_size
+
+    for term, tf in query_histogram.items():
+        index_records = hash_idx.search_record(str(term))
+        if not index_records:
+            continue
+
+        record = inverted_index.fetch_record_by_offset(index_records[0].offset)
+        postings = json.loads(record.values[1])
+
+        dft = len(postings)
+        idf = math.log10(N / dft) if dft > 0 else 0
+
+        query_vector[term] = math.log10(1 + tf) * idf
+
+        for doc_id, tfidf in postings:
+            doc_scores[doc_id] += query_vector[term] * tfidf
+            relevant_docs.add(doc_id)
+
+    query_norm = math.sqrt(sum(w**2 for w in query_vector.values()))
+    scored_docs = []
+
+    for doc_id in relevant_docs:
+        norm_records = norms_hash_idx.search_record(doc_id)
+        if norm_records:
+            norm_record = norms_table.fetch_record_by_offset(norm_records[0].offset)
+            doc_norm = norm_record.values[1]
+            similarity = doc_scores[doc_id] / (query_norm * doc_norm)
+            scored_docs.append((doc_id, similarity))
+
+    scored_docs.sort(key=lambda x: x[1], reverse=True)
+    top_k = scored_docs[:k]
+
+    results = []
+    source_table = HeapFile(_table_path(table_name))
+
+    for doc_id, score in top_k:
+        matching_recs = source_table.search_by_field(source_table.primary_key, doc_id)
+        if matching_recs:
+            results.append((matching_recs[0], score))
+
+    return results
 
 def search_text(table_name: str, query: str, k: int = 5) -> list[tuple[Record, float]]:
     """

@@ -24,9 +24,9 @@ def build_histogram(audio_path, codebook):
 
 
     # Construir el histograma
-    histogram = np.zeros(len(codebook["centroids"]))
+    histogram = {}
     for label in labels:
-        histogram[label] += 1
+        histogram[label] = histogram.get(label, 0) + 1
 
     return histogram
 
