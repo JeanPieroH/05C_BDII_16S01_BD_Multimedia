@@ -40,12 +40,12 @@ def main():
 
     # 2. Insert records
     records_to_insert = [
-        (1, "Song A", "Pop", "sounds/000002.mp3"),
-        (2, "Song B", "Rock", "sounds/000005.mp3"),
-        (3, "Song C", "Jazz", "sounds/000010.mp3"),
-        (4, "Song D", "Pop", "sounds/000140.mp3"),
-        (5, "Song E", "Rock", "sounds/000141.mp3"),
-        (6, "Song F", "Jazz", "sounds/000148.mp3"),
+        (1, "Song A", "Pop", "000002.mp3"),
+        (2, "Song B", "Rock", "000005.mp3"),
+        (3, "Song C", "Jazz", "000010.mp3"),
+        (4, "Song D", "Pop", "000140.mp3"),
+        (5, "Song E", "Rock", "000141.mp3"),
+        (6, "Song F", "Jazz", "000148.mp3"),
     ]
 
     for r in records_to_insert:

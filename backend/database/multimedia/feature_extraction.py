@@ -1,5 +1,6 @@
 import librosa
 import numpy as np
+import os
 
 def extract_features(audio_path):
     """
@@ -12,6 +13,10 @@ def extract_features(audio_path):
         np.ndarray: Vector de características.
     """
     try:
+        # Completa la ruta del archivo de audio si solo se proporciona el nombre
+        if not os.path.isabs(audio_path) and not audio_path.startswith("sounds/"):
+            audio_path = os.path.join("backend/database/sounds/", audio_path)
+
         y, sr = librosa.load(audio_path)
 
         # Extraer MFCCs

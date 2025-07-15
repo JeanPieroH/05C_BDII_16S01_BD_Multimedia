@@ -13,7 +13,7 @@ def build_histogram(audio_path, codebook):
     Returns:
         np.ndarray: Histograma de palabras acústicas.
     """
-    features = extract_features(audio_path)
+    features = extract_features(audio_path)  # Path handling is now in extract_features
     if features is None:
         return None
 

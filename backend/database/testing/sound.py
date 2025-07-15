@@ -35,9 +35,9 @@ def main():
 
     # 2. Insert records
     records_to_insert = [
-        (1, "Song A", "Pop", "sounds/000002.mp3"),
-        (2, "Song B", "Rock", "sounds/000005.mp3"),
-        (3, "Song C", "Jazz", "sounds/000010.mp3"),
+        (1, "Song A", "Pop", "000002.mp3"),
+        (2, "Song B", "Rock", "000005.mp3"),
+        (3, "Song C", "Jazz", "000010.mp3"),
     ]
 
     for r in records_to_insert:
@@ -53,7 +53,7 @@ def main():
 
         # Verification
         sound_path = retrieved_record.values[3]
-        if sound_path == "sounds/000005.mp3":
+        if sound_path == "000005.mp3":
             print("Test PASSED!")
         else:
             print("Test FAILED!")
