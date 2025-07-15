@@ -220,8 +220,8 @@ def delete_record(table_name: str, pk_value):
 # =============================================================================
 
 
-def search_by_field(table_name: str, field_name: str, value) -> List[Record]:
-    return HeapFile(_table_path(table_name)).search_by_field(field_name, value)
+def search_by_field(table_name: str, field_name: str, value, crude_data=False) -> List[Record]:
+    return HeapFile(_table_path(table_name)).search_by_field(field_name, value, crude_data)
 
 
 def search_seq_idx(table_name: str, field_name: str, field_value):
