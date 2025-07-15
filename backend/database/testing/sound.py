@@ -16,7 +16,7 @@ from storage.Sound import Sound
 
 
 def main():
-    table_name = "songs"
+    table_name = "songs_sound_test"
     schema = [
         ("id", "INT"),
         ("title", "VARCHAR(100)"),
@@ -52,7 +52,7 @@ def main():
         print(f"Retrieved record: {retrieved_record}")
 
         # Verification
-        sound_path = retrieved_record.values[3]
+        sound_path, _ = retrieved_record.values[3]
         if sound_path == "sounds/000005.mp3":
             print("Test PASSED!")
         else:
